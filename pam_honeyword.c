@@ -61,7 +61,7 @@ pam_sm_authenticate(
         if (argc > 0) {
             exec = strrchr(argv[--argc], '=');
             if (exec != NULL) {
-                xec++;
+                exec++;
             } else {
                 pam_syslog(handler, LOG_AUTH|LOG_ERR, "Error parsing exec= attributes");
             }
