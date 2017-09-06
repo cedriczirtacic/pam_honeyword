@@ -58,7 +58,7 @@ pam_sm_authenticate(
         pam_syslog(handler, LOG_AUTH|LOG_ERR, "You must specify a wordlist.");
         return(PAM_IGNORE);
     } else {
-        if (argc > 0) {
+        if (argc > 1) {
             exec = strrchr(argv[--argc], '=');
             if (exec != NULL) {
                 exec++;
@@ -111,30 +111,6 @@ pam_sm_authenticate(
 
 PAM_EXTERN int
 pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv)
-{
-	return(PAM_SUCCESS);
-}
-
-PAM_EXTERN int
-pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc ,const char **argv)
-{
-	return(PAM_SUCCESS);
-}
-
-PAM_EXTERN int
-pam_sm_chauthtok(pam_handle_t *pamh, int flags, int argc, const char **argv)
-{
-	return(PAM_SUCCESS);
-}
-
-PAM_EXTERN int
-pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, const char **argv)
-{
-	return(PAM_SUCCESS);
-}
-
-PAM_EXTERN int
-pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
 	return(PAM_SUCCESS);
 }
