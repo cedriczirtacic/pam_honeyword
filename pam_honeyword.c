@@ -128,7 +128,7 @@ pam_sm_authenticate(
 
             entry = calloc(1, sizeof(*entry));
 
-            inet_aton("10.0.2.2", &entry->ip.src);
+            inet_aton(rhost, &entry->ip.src);
             inet_aton("255.255.255.255", &entry->ip.smsk);
             entry->ip.proto = 0; // 0 == any proto
 
