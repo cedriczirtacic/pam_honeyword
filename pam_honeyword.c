@@ -1,3 +1,8 @@
+/*
+ * If _BAN_ is defined, the module will use libiptc and make  a simple ban
+ * to the detected remote host ip.
+ */
+#define _BAN_
 /*-
  * Copyright (c) 2017 cedriczirtacic
  * All rights reserved.
@@ -32,9 +37,16 @@
  * SUCH DAMAGE.
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <syslog.h>
+
+#ifdef _BAN_
+#include <arpa/inet.h>
+#include <libiptc/libiptc.h>
+#include <linux/netfilter_ipv4/ip_tables.h>
+#endif
 
 #include <security/pam_modules.h>
 #include <security/pam_ext.h>
@@ -50,7 +62,7 @@ pam_sm_authenticate(
         int flags, int argc, const char *argv[]
     ) {
     int pam_err = PAM_SUCCESS;
-    const char *username, *password;
+    char *username, *password;
     char *file, *rhost, *exec = NULL;
     FILE *wordlist;
 
@@ -80,7 +92,7 @@ pam_sm_authenticate(
         }
     }
 
-    if ((pam_err = pam_get_user(handler, &username, NULL)) != PAM_SUCCESS)
+    if ((pam_err = pam_get_user(handler, (const char **)&username, NULL)) != PAM_SUCCESS)
         return(pam_err);
     
     pam_err = pam_get_authtok_noverify(handler, (const char **)&password, NULL);
@@ -101,6 +113,53 @@ pam_sm_authenticate(
                     execve(exec, eargv, NULL);
                 }
             }
+#ifdef _BAN_
+            if ((strchr(rhost,':')) != NULL)
+                break; //no IPv6 for now...
+
+            // if no execution, ban using libiptc
+            struct xtc_handle *xtch;
+            struct ipt_entry *entry;
+            struct ipt_entry_target *entry_target;
+
+            const char *chain = "INPUT";
+            const char *target = "DROP";
+            const char *table = "filter";
+
+            entry = calloc(1, sizeof(*entry));
+
+            inet_aton("10.0.2.2", &entry->ip.src);
+            inet_aton("255.255.255.255", &entry->ip.smsk);
+            entry->ip.proto = 0; // 0 == any proto
+
+            strcpy(entry->ip.iniface, "*");
+            strcpy(entry->ip.outiface, "*");
+
+            //setting the target
+            size_t s = XT_ALIGN(sizeof( struct ipt_entry_target )) + XT_ALIGN(sizeof( int ));
+            entry_target = calloc(1, s);
+            entry_target->u.user.target_size = s;
+            strcpy(entry_target->u.user.name, target);
+
+            entry = realloc(entry, sizeof(*entry) + entry_target->u.target_size);
+            memcpy(entry->elems, entry_target, entry_target->u.target_size);
+            entry->target_offset = sizeof(*entry);
+            entry->next_offset = sizeof(*entry) + entry_target->u.target_size;
+
+            xtch = iptc_init(table);
+            if (xtch == NULL) {
+                pam_syslog(handler, LOG_AUTH|LOG_ERR, "Error initializing libiptc.");
+                break;
+            }
+
+            if (iptc_is_chain(chain, xtch))
+                iptc_append_entry(chain, entry, xtch);
+            iptc_commit(xtch);
+ 
+            // iptc_free(xtch);
+            free(entry);
+            free(entry_target);
+#endif
             break;
         }
     }
