@@ -1,5 +1,5 @@
 # pam_honeyword
-👻 PAM module that checks for "dictionary" passwords
+👻 PAM module that checks for "dictionary" passwords and performs custom actions on discovery (_banning by default_).
 
 ### Why?
 This is just me playing with PAM and trying to understand how it works (**hella fun**) and an idea I had while I was reading a paper about honeywords ([Honeywords: Making Password-Cracking Detectable](https://people.csail.mit.edu/rivest/pubs/JR13.pdf)).
@@ -24,6 +24,8 @@ Messages from the module are displayed using pam_syslog:
 $ journalctl -S today | grep pam_honeyword
 Aug 31 03:41:08 dev sshd[12377]: pam_honeyword(sshd:auth): Matching passwords (user: cedric;rhost: 127.0.0.1).
 ```
+
+By default the module will ban any recognized attempt of brute force using iptables library. You can undefine _ BAN _ directive and compile the source again to disable this.
 
 ### Note
 This is just a test and should not be used on a production server (or any kind of server _unless you improve it 'cause I'm not a great programmer_).
