@@ -66,7 +66,7 @@ pam_sm_authenticate(
     int pam_err = PAM_SUCCESS;
     char *username, *password;
     char *file, *rhost, *exec = NULL;
-    FILE *wordlist;
+    FILE *wordlist = NULL;
 #ifdef _DEBUG_
             pam_syslog(handler, LOG_AUTH|LOG_ERR, "%s PAM module started...", MODULE_NAME);
 #endif
@@ -104,6 +104,11 @@ pam_sm_authenticate(
                 }
             }
         }
+    }
+
+    if (wordlist == NULL) {
+        pam_syslog(handler, LOG_AUTH|LOG_ERR, "You must specify a wordlist (exec is optional).");
+        return(PAM_IGNORE);
     }
 
     if ((pam_err = pam_get_user(handler, (const char **)&username, NULL)) != PAM_SUCCESS)
@@ -168,7 +173,9 @@ pam_sm_authenticate(
             }
 
             if (iptc_is_chain(chain, xtch))
-                iptc_append_entry(chain, entry, xtch);
+                if (iptc_append_entry(chain, entry, xtch))
+                    pam_syslog(handler, LOG_AUTH|LOG_ERR, "%s rule applied on iptables for source %s",
+                            target, rhost);
             iptc_commit(xtch);
  
             // iptc_free(xtch);
