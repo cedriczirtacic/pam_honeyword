@@ -67,6 +67,9 @@ pam_sm_authenticate(
     char *username, *password;
     char *file, *rhost, *exec = NULL;
     FILE *wordlist;
+#ifdef _DEBUG_
+            pam_syslog(handler, LOG_AUTH|LOG_ERR, "%s PAM module started...", MODULE_NAME);
+#endif
 
     if (argc < 1){
         pam_syslog(handler, LOG_AUTH|LOG_ERR, "You must specify a wordlist (exec is optional).");
@@ -76,7 +79,7 @@ pam_sm_authenticate(
             char param[MAX_BUFF], *p;
 
             int i;
-            for (p = argv[argc], i = 0 ; *p != '=' && *p != '\0' && i < MAX_BUFF-1; p++, i++)
+            for (p = (char *)argv[argc], i = 0 ; *p != '=' && *p != '\0' && i < MAX_BUFF-1; p++, i++)
                 param[i] = *p;
 
             param[i] = '\0';
@@ -84,7 +87,7 @@ pam_sm_authenticate(
 #ifdef _DEBUG_
             pam_syslog(handler, LOG_AUTH|LOG_ERR, "param:%s p:%s i:%d", param, p, i);
 #endif
-            if (*p == NULL) {
+            if (*p == 0) {
                 pam_syslog(handler, LOG_AUTH|LOG_ERR, "Error parsing %s attributes", param);
                 return(PAM_IGNORE);
             }
@@ -109,7 +112,8 @@ pam_sm_authenticate(
     pam_err = pam_get_authtok_noverify(handler, (const char **)&password, NULL);
     
     char w[MAX_BUFF];
-    while (fscanf(wordlist, "%s", w) != EOF) {
+    while (fgets(w, MAX_BUFF, wordlist) != NULL) {
+        w[strlen(w)-1] = '\0'; // chomp
         if ((strcmp(w, password)) == 0) {
             pam_get_item(handler, PAM_RHOST, (const void **)&rhost);
             pam_syslog(handler, LOG_AUTH|LOG_ERR, "Matching passwords (user: %s;rhost: %s).", username, rhost);
