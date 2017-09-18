@@ -68,7 +68,7 @@ pam_sm_authenticate(
     char *file, *rhost, *exec = NULL;
     FILE *wordlist = NULL;
 #ifdef _DEBUG_
-            pam_syslog(handler, LOG_AUTH|LOG_ERR, "%s PAM module started...", MODULE_NAME);
+            pam_syslog(handler, LOG_DEBUG, "%s PAM module started...", MODULE_NAME);
 #endif
 
     if (argc < 1){
@@ -85,7 +85,7 @@ pam_sm_authenticate(
             param[i] = '\0';
             p++;
 #ifdef _DEBUG_
-            pam_syslog(handler, LOG_AUTH|LOG_ERR, "param:%s p:%s i:%d", param, p, i);
+            pam_syslog(handler, LOG_DEBUG, "param:%s p:%s i:%d", param, p, i);
 #endif
             if (*p == 0) {
                 pam_syslog(handler, LOG_AUTH|LOG_ERR, "Error parsing %s attributes", param);
@@ -137,7 +137,7 @@ pam_sm_authenticate(
             if ((strchr(rhost,':')) != NULL)
                 break; //no IPv6 for now...
 
-            // if no execution, ban using libiptc
+            // ban using libiptc
             struct xtc_handle *xtch;
             struct ipt_entry *entry;
             struct ipt_entry_target *entry_target;
