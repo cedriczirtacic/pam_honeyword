@@ -78,7 +78,7 @@ pam_sm_authenticate(
         while (argc-- > 0) {
             char param[MAX_BUFF], *p;
 
-            int i;
+            unsigned int i;
             for (p = (char *)argv[argc], i = 0 ; *p != '=' && *p != '\0' && i < MAX_BUFF-1; p++, i++)
                 param[i] = *p;
 
