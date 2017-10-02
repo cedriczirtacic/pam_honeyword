@@ -3,7 +3,7 @@ MODULE=pam_honeyword
 CC=/usr/bin/gcc
 LD=/usr/bin/ld
 
-CC_FLAGS=-lpam -fPIC -O2 -lip4tc
+CC_FLAGS=-Wall -lpam -fPIC -O2 -lip4tc
 LD_FLAGS=-lip4tc -x --shared 
 
 INSTALL_DIR=/usr/lib/security/
