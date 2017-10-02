@@ -124,7 +124,6 @@ pam_sm_authenticate(
             pam_syslog(handler, LOG_AUTH|LOG_ERR, "Matching passwords (user: %s;rhost: %s).", username, rhost);
             if (exec != NULL) {
                 pid_t pid;
-                int status;
 
                 pid = fork();
                 if (pid == 0) {
